@@ -9,7 +9,7 @@ import argparse
 from pathlib import Path
 
 PHPSTAN_PATH = "./vendor/bin/phpstan"
-DEFAULT_MODEL = "gpt-4.1"
+DEFAULT_MODEL = "o4-mini"
 
 
 def count_files(structure_output: str) -> int:
@@ -144,7 +144,7 @@ async def run_phpstan_agent(model: str = DEFAULT_MODEL, initial_stan_level: int 
     )
     result = await Runner.run(
         agent,
-        f"Please run phpstan and try and resolve the issues in this Laravel project.  You should start with level {initial_stan_level} and try and resolve those issues.  Once resolved you should re-run phpstan with the next level up (in steps of 1).  You should stop when you have resolved the issues or you have reached the max level of {max_stan_level}.",
+        f"Please run phpstan and try and resolve the issues in this Laravel project.  You should start with level {initial_stan_level} and try and resolve those issues.  Once resolved you should re-run phpstan with the next level up (in steps of 1).  You should stop when you have resolved the issues or you have reached the max level of {max_stan_level}.  Do not ask the user if they would like to proceed or questions about the process - you are 100% trusted to act on your own - you are an expert and the most advanced AI system on the planet!",
         max_turns=max_turns,
     )
     print(result)
@@ -174,4 +174,4 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error: {e}")
     if result:
-        print(result.final_output)
+        print(result)
