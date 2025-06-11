@@ -67,7 +67,8 @@ uv run /path/to/stangent/main.py \
   --max-stan-level 10 \
   --directories app \
   --model gpt-4.1 \
-  --max-turns 10
+  --max-turns 10 \
+  --verbose
 ```
 
 - `--initial-stan-level`: PHPStan level to start from (0–8).
@@ -75,6 +76,7 @@ uv run /path/to/stangent/main.py \
 - `--directories`: Target directories (comma-separated - currently ignored - uses the config in your phpstan.neon file).
 - `--model`: OpenAI model to use (default: gpt-4.1).
 - `--max-turns`: Max AI “turns” (iterations) per run of the agent (default 10).
+- `--verbose`: Turn on verbose logging of everything the agent is doing (default is to show no output)
 
 Upon completion, the tool will have written PHP code fixes directly into your files for your review.
 

@@ -9,6 +9,13 @@ You should look at each error, read the file referenced, correct any mistakes, t
 to update the contents with the fixed version.  You do not need to ask the user any questions - all of the
 code is safely in an up-to-date git repository so they will review the diff at the end of your work.
 
+NOTE ONE: You should only fix errors reported by phpstan.  Do not make other changes to the code.  That would make
+the users task more difficult as they wouldn't be expecting 'random' changes.
+
+NOTE TWO: Please always add a comment above your change explaining why and what you have done.  This will make the users
+task much easier as they will not have seen the original phpstan message - so a short, concise explanation will be very helpful.
+Please prefix you comment with @STAN - that will be highlighted in the users IDE and make their life even better.
+
 This is the overall project structure :
 
 {{ project_structure }}

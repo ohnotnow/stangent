@@ -3,12 +3,14 @@ import asyncio
 import os
 import subprocess
 from jinja2 import Template
-from agents import Agent, Runner, Tool, FunctionTool, function_tool
+from agents import Agent, Runner, Tool, FunctionTool, function_tool, enable_verbose_stdout_logging
+from agents.exceptions import MaxTurnsExceeded
 import argparse
 from pathlib import Path
 
 PHPSTAN_PATH = "./vendor/bin/phpstan"
 DEFAULT_MODEL = "gpt-4.1"
+
 
 def count_files(structure_output: str) -> int:
     """
@@ -160,6 +162,16 @@ if __name__ == "__main__":
     parser.add_argument("--model", type=str, default=DEFAULT_MODEL)
     parser.add_argument("--directories", type=str, default="app")
     parser.add_argument("--max-turns", type=int, default=10)
+    parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
-    result = asyncio.run(main(args.model, args.initial_stan_level, args.max_stan_level, args.directories, args.max_turns))
-    print(result)
+    if args.verbose:
+        enable_verbose_stdout_logging()
+    result = ""
+    try:
+        result = asyncio.run(main(args.model, args.initial_stan_level, args.max_stan_level, args.directories, args.max_turns))
+    except MaxTurnsExceeded as e:
+        print(f"Exiting after {args.max_turns} turns")
+    except Exception as e:
+        print(f"Error: {e}")
+    if result:
+        print(result.final_output)
