@@ -42,9 +42,8 @@ A CLI tool to automatically analyze and fix PHPStan issues in Laravel projects b
 ## Installation
 
 1. **Clone the repository**
-   Replace `<repo-url>` with your git remote:
    ```bash
-   git clone <repo-url>
+   git clone https://github.com/ohnotnow/stangent.git
    cd stangent
    ```
 
