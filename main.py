@@ -139,9 +139,12 @@ async def run_phpstan_agent(model: str = DEFAULT_MODEL, initial_stan_level: int 
         instructions=prompt,
         tools=[read_file, write_file, run_phpstan],
         model=model,
+    )
+    result = await Runner.run(
+        agent,
+        f"Please run phpstan and try and resolve the issues in this Laravel project.  You should start with level {initial_stan_level} and try and resolve those issues.  Once resolved you should re-run phpstan with the next level up (in steps of 1).  You should stop when you have resolved the issues or you have reached the max level of {max_stan_level}.",
         max_turns=max_turns,
     )
-    result = await Runner.run(agent, f"Please run phpstan and try and resolve the issues in this Laravel project.  You should start with level {initial_stan_level} and try and resolve those issues.  Once resolved you should re-run phpstan with the next level up (in steps of 1).  You should stop when you have resolved the issues or you have reached the max level of {max_stan_level}.")
     print(result)
     return result.final_output
 
