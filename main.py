@@ -127,7 +127,7 @@ def run_phpstan(level: int = 0, directories: str = "app") -> str:
     stdout, stderr = process.communicate()
     return stdout.decode("utf-8")
 
-async def run_phpstan_agent(model: str = DEFAULT_MODEL, initial_stan_level: int = 0, max_stan_level: int = 10, directories: str = "app") -> str:
+async def run_phpstan_agent(model: str = DEFAULT_MODEL, initial_stan_level: int = 0, max_stan_level: int = 10, directories: str = "app", max_turns: int = 10) -> str:
     # make the prompts path the full path to the prompts directory
     project_structure = get_project_structure()
     prompts_path = os.path.join(os.path.dirname(__file__), "prompts")
@@ -139,13 +139,14 @@ async def run_phpstan_agent(model: str = DEFAULT_MODEL, initial_stan_level: int 
         instructions=prompt,
         tools=[read_file, write_file, run_phpstan],
         model=model,
+        max_turns=max_turns,
     )
     result = await Runner.run(agent, f"Please run phpstan and try and resolve the issues in this Laravel project.  You should start with level {initial_stan_level} and try and resolve those issues.  Once resolved you should re-run phpstan with the next level up (in steps of 1).  You should stop when you have resolved the issues or you have reached the max level of {max_stan_level}.")
     print(result)
     return result.final_output
 
-async def main(model: str = DEFAULT_MODEL, initial_stan_level: int = 0, max_stan_level: int = 10, directories: str = "app") -> str:
-    results = await run_phpstan_agent(model, initial_stan_level, max_stan_level, directories)
+async def main(model: str = DEFAULT_MODEL, initial_stan_level: int = 0, max_stan_level: int = 10, directories: str = "app", max_turns: int = 10) -> str:
+    results = await run_phpstan_agent(model, initial_stan_level, max_stan_level, directories, max_turns)
     return results
 
 
@@ -155,5 +156,7 @@ if __name__ == "__main__":
     parser.add_argument("--max-stan-level", type=int, default=10)
     parser.add_argument("--model", type=str, default=DEFAULT_MODEL)
     parser.add_argument("--directories", type=str, default="app")
+    parser.add_argument("--max-turns", type=int, default=10)
     args = parser.parse_args()
-    asyncio.run(main(args.model, args.initial_stan_level, args.max_stan_level, args.directories))
+    result = asyncio.run(main(args.model, args.initial_stan_level, args.max_stan_level, args.directories, args.max_turns))
+    print(result)
