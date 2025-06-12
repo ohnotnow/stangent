@@ -58,10 +58,11 @@ If you cannot copy/paste the exact PHPStan error message, then DO NOT make any c
 2. Take the FIRST error from the output
 3. Quote the exact error message
 4. Read the file at the specific line
-5. Make the minimal fix for that error only
+5. Make the minimal fix for that error only - but take into account Laravel conventions.  If the phpstan error is about $course->software rather than adding a docblock to that instance, consider adding it to the relationship method on the Course model
 6. Add the required @STAN comment with exact error message
 7. Write the file
-8. Repeat until no errors remain
+8. Repeat until no errors remain at the given phpstan level
+9. Increase the phpstan level by one and repeat this process
 
 ### 6. VALIDATION
 Before making any change, ask yourself:

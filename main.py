@@ -1,7 +1,9 @@
-from litellm import completion
+from litellm import acompletion, completion
+import json
 import asyncio
 import os
 import subprocess
+import difflib
 from jinja2 import Template
 from agents import Agent, Runner, Tool, FunctionTool, function_tool, enable_verbose_stdout_logging
 from agents.exceptions import MaxTurnsExceeded
@@ -104,6 +106,38 @@ def get_project_structure() -> str:
     output += f"\n\n## Total files: {total_files}\n\n"
     return output
 
+def get_diff(original_filename: str, new_file_contents: str) -> str:
+    with open(original_filename, "r") as file:
+        original_file_str = file.read()
+    orig_lines = original_file_str.splitlines(keepends=True)
+    new_lines  =  new_file_contents.splitlines(keepends=True)
+
+    diff = difflib.unified_diff(
+        orig_lines,
+        new_lines,
+        fromfile="before.py",
+        tofile="after.py",
+        lineterm=""      # omit extra newlines
+    )
+
+    patch_str = "".join(diff)
+    return patch_str
+
+def check_changes(filename: str, new_file_contents: str) -> dict:
+    diff = get_diff(filename, new_file_contents)
+    prompts_path = os.path.join(os.path.dirname(__file__), "prompts")
+    template = Template(open(os.path.join(prompts_path, "check.jinja")).read())
+    prompt = template.render(diff=diff)
+    response = completion(
+        model="o4-mini",
+        messages=[
+            {"role": "user", "content": prompt}
+        ]
+    )
+    json_string = response.choices[0].message.content
+    json_string = json_string.replace("```json", "").replace("```", "")
+    return json.loads(json_string)
+
 @function_tool
 def read_file(file_path: str) -> str:
     try:
@@ -114,6 +148,9 @@ def read_file(file_path: str) -> str:
 
 @function_tool
 def write_file(file_path: str, content: str) -> str:
+    response = check_changes(file_path, content)
+    if not response["allowed"]:
+        return f"Write forbidden: {response['reason']}"
     try:
         with open(file_path, "w") as file:
             file.write(content)
@@ -121,13 +158,18 @@ def write_file(file_path: str, content: str) -> str:
     except FileNotFoundError:
         return f"File {file_path} not found"
 
-@function_tool
-def run_phpstan(level: int = 0, directories: str = "app") -> str:
-    # run phpstan using a subprocess
+def exec_phpstan(level: int = 0, directories: str = "app") -> str:
     command = f"{PHPSTAN_PATH} analyse --level {level} --error-format raw --memory-limit 2G {directories}"
     process = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
     return stdout.decode("utf-8")
+
+@function_tool
+def run_phpstan(level: int = 0, directories: str = "app", max_errors: int = 10) -> str:
+    # run phpstan using a subprocess
+    errors = exec_phpstan(level, directories)
+    errors = "\n".join(errors.split("\n")[0:max_errors])
+    return errors
 
 async def run_phpstan_agent(model: str = DEFAULT_MODEL, initial_stan_level: int = 0, max_stan_level: int = 10, directories: str = "app", max_turns: int = 10) -> str:
     # make the prompts path the full path to the prompts directory
